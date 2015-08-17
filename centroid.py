@@ -12,6 +12,7 @@ def init_pos(header):
     """Find the initial position of the star using the input header."""
 
     ra, dec = header["RA_OBJ"], header["DEC_OBJ"]
+    logging.info("Nominal position %f %f", ra, dec)
     
     wcs = WCS(header)
     init = wcs.wcs_world2pix(ra, dec, 0.0)[::-1]
