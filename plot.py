@@ -42,15 +42,36 @@ def centroids(ax, init, coords=None, sources=None):
         table of sources from daofind
     """
 
-    ax.plot(init[0], init[1], "ko", mec="w", ms=10)
+    ax.plot(init[1], init[0], "ko", mec="w", ms=10)
 
     if coords is not None:
-        ax.plot(coords[0],coords[1], "r*", ms=13)
+        ax.plot(coords[1], coords[0], "r*", ms=13)
 
     if sources is not None:
         for i, source in enumerate(sources):
             ax.plot(source["xcentroid"], source["ycentroid"], "gD", ms=9,
                     mew=1.5)
+
+def apertures(ax, ap_center, ap_radii, color="w"):
+    """Plot apertures onto an image.
+
+    inputs
+    ------
+    ax: matplotlib.Axes instance with pixel stamp already plotted
+
+    ap_centers: array-like
+        ra and dec pixel coordinates
+
+    ap_radii: array-like
+        radii of apertures in pixel coordinates
+    """
+
+    plot_center = np.array([ap_center[1], ap_center[0]])
+
+    for rad in ap_radii:
+        logging.debug("rad %f", rad)
+        ap = plt.Circle(plot_center, rad, color=color, fill=False, linewidth=2)
+        ax.add_artist(ap)
 
 def lcs(lc_filename):
     """Plot lightcurves from a file."""
@@ -66,7 +87,7 @@ def lcs(lc_filename):
         print lcs.dtype.names[i]
         ap_cols.append(lcs.dtype.names[i])
 
-    fig = plt.figure(figsize=(10,8))
+    fig = plt.figure(figsize=(11,8))
     plt.suptitle(outfile)
 
     colors = np.array(["r", "k", "c", "m", "b", "g"])
