@@ -57,7 +57,7 @@ def lcs(lc_filename):
     lcs = at.read(lc_filename)
 
     # output file same as input, but change ending
-    outfile = lc_filename[:-4]
+    outfile = lc_filename.split("/")[-1][:-4]
 
     # count how many apertures were used
     num_aps = (len(lcs[0]) - 4) / 2
@@ -66,7 +66,7 @@ def lcs(lc_filename):
         print lcs.dtype.names[i]
         ap_cols.append(lcs.dtype.names[i])
 
-    fig = plt.figure(figsize=(8,10))
+    fig = plt.figure(figsize=(10,8))
     plt.suptitle(outfile)
 
     colors = np.array(["r", "k", "c", "m", "b", "g"])
@@ -84,7 +84,7 @@ def lcs(lc_filename):
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
 
-    plt.savefig(outfile+".png")
+    plt.savefig("plot_outputs/{}_lcs.png".format(outfile))
 
 if __name__=="__main__":
     lcs("test_lc.csv")

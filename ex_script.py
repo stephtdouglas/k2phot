@@ -1,5 +1,5 @@
 
-import logging
+import logging, os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,10 +28,10 @@ if __name__=="__main__":
 
     ax = plot.stamp(coadd, maskmap)
     plot.centroids(ax, init, coords, sources)
-    plt.savefig(outfilename+"_stamp.png")
+    plt.savefig("plot_outputs/{}_stamp.png".format(outfilename))
     plt.show()
     
-    phot.make_lc(pixels,maskmap, times, init, np.array([1,2,3,4,5]),
-                   outfilename+".csv")
+#    phot.make_lc(pixels,maskmap, times, init, np.array([1,2,3,4,5]),
+#                 "lcs/{}.csv".format(outfilename))
 
-    plot.lcs(outfilename+".csv")
+    plot.lcs("lcs/{}.csv".format(outfilename))
