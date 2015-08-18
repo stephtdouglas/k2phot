@@ -92,12 +92,15 @@ def lcs(lc_filename):
 
     colors = np.array(["r", "k", "c", "m", "b", "g"])
 
+    t = lcs["t"]
+    good = np.where(t>2065)[0]
+
     # Plot every lightcurve and the background level
     for i, colname in enumerate(ap_cols):
         ax = plt.subplot(num_aps, 1, i+1)
 
-        ax.plot(lcs["t"], lcs[colname], ".", color=colors[i])
-        ax.plot(lcs["t"], lcs[colname.replace("flux","bkgd")], ".",
+        ax.plot(t[good], lcs[colname][good], ".", color=colors[i])
+        ax.plot(t[good], lcs[colname.replace("flux","bkgd")][good], ".",
                 color="Grey")
         ax.set_ylabel(colname)
 
