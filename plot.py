@@ -1,11 +1,14 @@
 """Plot lightcurve outputs, etc."""
 
-import logging
+import logging, os
 
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
 import astropy.io.ascii as at
+from astropy.io import fits
+
+import k2spin.plot
 
 def stamp(img, maskmap, ax=None, cmap="cubehelix"):
     """Plot a single pixel stamp."""
@@ -73,7 +76,7 @@ def apertures(ax, ap_center, ap_radii, color="w"):
         ap = plt.Circle(plot_center, rad, color=color, fill=False, linewidth=2)
         ax.add_artist(ap)
 
-def lcs(lc_filename):
+def lcs(lc_filename, epic=None):
     """Plot lightcurves from a file."""
     lcs = at.read(lc_filename)
 
@@ -100,15 +103,64 @@ def lcs(lc_filename):
         ax = plt.subplot(num_aps, 1, i+1)
 
         ax.plot(t[good], lcs[colname][good], ".", color=colors[i])
-        ax.plot(t[good], lcs[colname.replace("flux","bkgd")][good], ".",
-                color="Grey")
+#        ax.plot(t[good], lcs[colname.replace("flux","bkgd")][good], ".",
+#                color="Grey")
         ax.set_ylabel(colname)
+
+        if (epic is not None) and ("3.0" in colname):
+            lc_compare(ax, epic, colname="Flux5")
+        elif (epic is not None) and ("5.0" in colname):
+            lc_compare(ax, epic, colname="Flux3")
 
     ax.set_xlabel("Time (d)")
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
 
     plt.savefig("plot_outputs/{}_lcs.png".format(outfile))
+
+def lc_compare(ax, epic, colname="Flux3"):
+    """Overplot lightcurves from other authors."""
+
+#    vfile = "vanderburg/hlsp_k2sff_k2_lightcurve_{}-c02_kepler_v1_llc.fits".format(epic)
+#    if os.path.exists(vfile)==True:
+#        vanderburg = fits.open("vanderburg/"+vfile)
+#        vd = np.asarray([np.asarray(vanderburg[1].data[i]) 
+#                         for i in range(len(vanderburg[1].data))])
+#        vanderburg.close()
+#        ax.plot(vd[:,0], vd[:,1], "k-")
+#        ax.plot(vd[:,0], vd[:,1], "-", color="grey")
+
+    cfile= "cody/EPIC_{}_xy_ap5.0_3.0_fixbox.dat".format(epic)
+    if os.path.exists(cfile)==True:
+        cody = at.read(cfile)
+        ax.plot(cody["Dates"][cody["Dates"]>2065], 
+                cody[colname][cody["Dates"]>2065], ".", color="g")
+
+def plot_xy(lc_filename, epic=None):
+
+    lcs = at.read(lc_filename)
+
+    # output file same as input, but change ending
+    outfilename = lc_filename.split("/")[-1][:-4]
+    k2spin.plot.plot_xy(lcs["x"], lcs["y"], lcs["t"],
+                        lcs["flux_3.0"], "Flux 3.0")
+    plt.suptitle(outfilename, fontsize="large")
+    plt.savefig("plot_outputs/{}_f3pos.png".format(outfilename))
+
+    k2spin.plot.plot_xy(lcs["x"], lcs["y"], lcs["t"],
+                        lcs["flux_5.0"], "Flux 5.0")
+    plt.suptitle(outfilename, fontsize="large")
+    plt.savefig("plot_outputs/{}_f5pos.png".format(outfilename))
+
+    if epic is not None:
+        cfile= "cody/EPIC_{}_xy_ap5.0_3.0_fixbox.dat".format(epic)
+        if os.path.exists(cfile)==True:
+            cody = at.read(cfile)
+            k2spin.plot.plot_xy(cody["Xpos"], cody["Ypos"],
+                                cody["Dates"], cody["Flux5"], "AMC Flux 5.0")
+            plt.suptitle("{} AMC Position".format(epic))
+            plt.savefig("plot_outputs/{}_AMCpos.png".format(outfilename))
+
 
 if __name__=="__main__":
     lcs("test_lc.csv")

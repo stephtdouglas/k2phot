@@ -5,7 +5,6 @@ import astropy.io.ascii as at
 import matplotlib.pyplot as plt
 import numpy as np
 
-import k2phot
 from k2phot import centroid
 from k2phot import tpf_io
 from k2phot import phot
@@ -37,7 +36,8 @@ def run_one(filename):
     logging.debug("sources")
     logging.debug(sources)
 
-    radii = np.array([1,2,3,4,5])
+#    radii = np.array([1,2,3,4,5])
+    radii = np.array([3,4,5])
 
     ax = plot.stamp(coadd, maskmap)
     plot.centroids(ax, init, coords, sources)
@@ -47,17 +47,22 @@ def run_one(filename):
 #    plt.show()
     plt.close("all")
 
-    phot.make_lc(pixels,maskmap, times, init, radii,
-                 "lcs/{}.csv".format(outfilename))
+#    phot.make_lc(pixels,maskmap, times, init, radii,
+#                 "lcs/{}.csv".format(outfilename))
 
-    plot.lcs("lcs/{}.csv".format(outfilename))
+    epic = outfilename.split("-")[0][4:]
+    plot.lcs("lcs/{}.csv".format(outfilename), epic=epic)
+
+    plot.plot_xy("lcs/{}.csv".format(outfilename), epic=epic)
 
 if __name__=="__main__":
     logging.basicConfig(level=logging.INFO)
 
-#    filename = "tpf/ktwo202521690-c02_lpd-targ.fits.gz"
+    filename = "tpf/ktwo202521690-c02_lpd-targ.fits.gz"
 #    filename = "tpf/ktwo202533810-c02_lpd-targ.fits.gz"
 #    filename = "tpf/ktwo202539362-c02_lpd-targ.fits.gz"
+#    run_one(filename)
+
 
     tpfs = at.read("all_tpf.lst")
     for fname in tpfs["filename"]:
@@ -65,3 +70,4 @@ if __name__=="__main__":
             run_one(fname)
         else:
             logging.warning("skipping %s", fname)
+#"""
