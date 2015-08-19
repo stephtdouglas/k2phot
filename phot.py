@@ -94,7 +94,9 @@ def make_lc(image_list, maskmap, times, start_center, ap_radii,
         
         # Find the actual centroid in this image, using start_center as a guess
         # (I should make a flag if the centroid has moved more than a pixel or two)
-        coords = centroid.quadratic_centroid(image_list[i], init=start_center)
+        coords = centroid.flux_weighted_centroid(image_list[i], 7, 
+                                                 init=start_center,
+                                                 to_plot=False)
 
         # Write out the centroid pixel coordinates
         f.write(",{0:.6f},{1:.6f}".format(coords[0],coords[1]))

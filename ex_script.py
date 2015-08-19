@@ -47,8 +47,8 @@ def run_one(filename):
 #    plt.show()
     plt.close("all")
 
-#    phot.make_lc(pixels,maskmap, times, init, radii,
-#                 "lcs/{}.csv".format(outfilename))
+    phot.make_lc(pixels,maskmap, times, init, radii,
+                 "lcs/{}.csv".format(outfilename))
 
     epic = outfilename.split("-")[0][4:]
     plot.lcs("lcs/{}.csv".format(outfilename), epic=epic)
@@ -58,12 +58,13 @@ def run_one(filename):
 if __name__=="__main__":
     logging.basicConfig(level=logging.INFO)
 
-    filename = "tpf/ktwo202521690-c02_lpd-targ.fits.gz"
+#    filename = "tpf/ktwo202521690-c02_lpd-targ.fits.gz"
 #    filename = "tpf/ktwo202533810-c02_lpd-targ.fits.gz"
 #    filename = "tpf/ktwo202539362-c02_lpd-targ.fits.gz"
-#    run_one(filename)
+    filename = "tpf/ktwo203033414-c02_lpd-targ.fits.gz"
+    run_one(filename)
 
-
+"""
     tpfs = at.read("all_tpf.lst")
     for fname in tpfs["filename"]:
         if os.path.exists(fname)==True:
