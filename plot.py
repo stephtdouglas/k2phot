@@ -134,7 +134,8 @@ def lc_compare(ax, epic, colname="Flux3"):
     if os.path.exists(cfile)==True:
         cody = at.read(cfile)
         ax.plot(cody["Dates"][cody["Dates"]>2065], 
-                cody[colname][cody["Dates"]>2065], ".", color="g")
+                cody[colname][cody["Dates"]>2065], ".", color="g",
+                alpha=0.5)
 
 def plot_xy(lc_filename, epic=None):
 

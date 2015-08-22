@@ -110,7 +110,7 @@ def make_lc(image_list, maskmap, times, start_center, ap_radii,
         else:
             # Now run the aperture photometry on the image
             ap_fluxes, bkgd_fluxes = get_flux(image_list[i], maskmap, 
-                                              coords[:2], ap_radii)
+                                              coords[::-1], ap_radii)
         
             # Write out the fluxes and background level for each aperture
             for i, r in enumerate(ap_radii):

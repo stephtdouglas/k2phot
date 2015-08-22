@@ -17,10 +17,11 @@ def get_data(filename):
     pixels = table['FLUX']
     maskmap = hdu[2].data
     maskheader = hdu[2].header
+    kpmag = hdu[0].header["KEPMAG"]
 
     hdu.close()
 
-    return table, times, pixels, maskmap, maskheader
+    return table, times, pixels, maskmap, maskheader, kpmag
 
 
 if __name__=="__main__":
