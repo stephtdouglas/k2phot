@@ -3,6 +3,7 @@
 import logging
 
 from astropy.io import fits
+import numpy as np
 
 def get_data(filename):
     """Open target pixel file and extract relevant information."""
@@ -14,7 +15,12 @@ def get_data(filename):
 
     table = hdu[1].data[:]
     times = table['TIME']
-    pixels = table['FLUX']
+#    pixels = table["RAW_CNTS"]
+    if "c04" in filename:
+        pixels = table['FLUX'] + table["FLUX_BKG"]
+    else:
+        pixels = table["FLUX"]
+    pixels[np.isnan(pixels)] = 0
     maskmap = hdu[2].data
     maskheader = hdu[2].header
     kpmag = hdu[0].header["KEPMAG"]
