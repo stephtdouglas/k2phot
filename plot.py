@@ -9,6 +9,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import ticker
 import astropy.io.ascii as at
 from astropy.io import fits
+import photutils
 import K2fov.projection as proj
 import K2fov.fov as fov
 from K2fov.K2onSilicon import angSepVincenty,getRaDecRollFromFieldnum
@@ -80,6 +81,27 @@ def apertures(ax, ap_center, ap_radii, color="w"):
         logging.debug("rad %f", rad)
         ap = plt.Circle(plot_center, rad, color=color, fill=False, linewidth=2)
         ax.add_artist(ap)
+
+def ellipses(ax, ap_center, a, b, theta, ap_radii, color="w"):
+    """Plot apertures onto an image.
+
+    inputs
+    ------
+    ax: matplotlib.Axes instance with pixel stamp already plotted
+
+    ap_centers: array-like
+        ra and dec pixel coordinates
+
+    ap_radii: array-like
+        radii of apertures in pixel coordinates
+    """
+
+    #plot_center = np.array([ap_center[1], ap_center[0]])
+
+    for rad in ap_radii:
+        logging.debug("rad %f", rad)
+        ap = photutils.EllipticalAperture(ap_center, a*rad, b*rad, theta=theta)
+        ap.plot(ax=ax, color=color, linewidth=2)#kwargs={"color":color,"linewidth":2})
 
 def lcs(lc_filename, epic=None):
     """Plot lightcurves from a file."""

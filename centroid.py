@@ -6,6 +6,7 @@ import numpy as np
 from astropy.wcs import WCS
 from scipy.linalg import cho_solve, cho_factor
 import photutils
+from photutils import morphology
 import matplotlib.pyplot as plt
 
 from k2phot import plot
@@ -57,7 +58,7 @@ def quadratic_centroid(img, init=None):
     return pos
 # end of code from DFM
 
-def daofind_centroid(img, init=None, daofind_kwargs=None):
+def daofind_centroid(img, init=None, daofind_kwargs=None, max_sep=10):
     """
     Find centroids using photutils.daofind.
 
@@ -197,3 +198,32 @@ def flux_weighted_centroid(img, box_edge, init=None, to_plot=False):
         plt.tight_layout()
 
     return np.array([xc, yc])
+
+columns = ['id', 'xcentroid', 'ycentroid', 'semimajor_axis_sigma',
+           'semiminor_axis_sigma', 'orientation']
+
+def find_ellipse(img, mask, background):
+    """
+    Compute properties of an image (basically fit a 2D Gaussian) and
+    determine the corresponding elliptical aperture. 
+    
+    inputs:
+    -------
+    filename: string
+    
+    r: float
+        isophotal extent (multiplied by semi-major axes of fitted
+        gaussian to determine the elliptical aperture)
+        
+    extents: array-like, optional
+        xmin, xmax, ymin, ymax of sub-image
+    """
+    cprops = morphology.data_properties(img - background, mask=(mask==0),
+                                        background = background)
+    tbl = photutils.properties_table(cprops, columns=columns)
+    #print tbl
+    position = (cprops.xcentroid.value, cprops.ycentroid.value)
+    a = cprops.semimajor_axis_sigma.value
+    b = cprops.semiminor_axis_sigma.value
+    theta = cprops.orientation.value
+    return position, a, b, theta
