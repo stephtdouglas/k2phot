@@ -98,6 +98,9 @@ def daofind_centroid(img, init=None, daofind_kwargs=None, max_sep=10):
         loc = np.argmin(sep)
         coords = sources[loc]
 
+    elif (init is not None) and (num_sources==1):
+        coords = sources[0]
+
     else:
         coords = sources
     
