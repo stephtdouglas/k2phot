@@ -18,45 +18,10 @@ def init_pos(header):
     logging.info("Nominal position %f %f", ra, dec)
     
     wcs = WCS(header)
-    init = wcs.wcs_world2pix(ra, dec, 0.0)[::-1]
+    init = wcs.wcs_world2pix(ra, dec, 0.0)
 
     return init
 
-
-# Below is adapted from code DFM gave me in demo.ipynb
-# These are some useful things to pre-compute and use later.
-_x, _y = np.meshgrid(range(-1, 2), range(-1, 2), indexing="ij")
-_x, _y = _x.flatten(), _y.flatten()
-_AT = np.vstack((_x*_x, _y*_y, _x*_y, _x, _y, np.ones_like(_x)))
-_ATA = np.dot(_AT, _AT.T)
-factor = cho_factor(_ATA, overwrite_a=True)
-
-# This function finds the centroid and second derivatives in a 3x3 patch.
-def fit_3x3(img):
-    a, b, c, d, e, f = cho_solve(factor, np.dot(_AT, img.flatten()))
-    m = 1. / (4 * a * b - c*c)
-    x = (c * e - 2 * b * d) * m
-    y = (c * d - 2 * a * e) * m
-    dx2, dy2, dxdy = 2 * a, 2 * b, c
-    return [x, y, dx2, dy2, dxdy]
-
-# This function finds the centroid in an image.
-# You can provide an estimate of the centroid using WCS.
-def quadratic_centroid(img, init=None):
-    if init is None:
-        xi, yi = np.unravel_index(np.argmax(img), img.shape)
-    else:
-        xi, yi = map(int, map(np.round, init))
-        ox, oy = np.unravel_index(np.argmax(img[xi-1:xi+2, yi-1:yi+2]), (3, 3))
-        xi += ox - 1
-        yi += oy - 1
-    assert (xi >= 1 and xi < img.shape[0] - 1), "effed, x"
-    assert (yi >= 1 and yi < img.shape[1] - 1), "effed, y"
-    pos = fit_3x3(img[xi-1:xi+2, yi-1:yi+2])
-    pos[0] += xi
-    pos[1] += yi
-    return pos
-# end of code from DFM
 
 def daofind_centroid(img, init=None, daofind_kwargs=None, max_sep=10):
     """
@@ -133,14 +98,22 @@ def flux_weighted_centroid(img, box_edge, init=None, to_plot=False):
 
     if init is None:
         init = np.asarray(np.shape(img) / 2.0, int)
+        raw_init = init
+    else:
+        raw_init = np.copy(init)
+        init = np.asarray(np.round(init), int)
+    print init, raw_init
 
-    Isum = np.sum(img[init[0]-L:init[0]+L+1, init[1]-L:init[1]+L+1], axis=1)
-    Jsum = np.sum(img[init[0]-L:init[0]+L+1, init[1]-L:init[1]+L+1], axis=0)
+    sub_img = img[init[1]-L:init[1]+L+1, init[0]-L:init[0]+L+1]
 
-    xedge = np.arange(np.shape(img)[0])[init[0]-L:init[0]+L+1]
-    yedge = np.arange(np.shape(img)[1])[init[1]-L:init[1]+L+1]
-#    print xedge
-#    print yedge
+    Isum = np.sum(sub_img, axis=0)
+    Jsum = np.sum(sub_img, axis=1)
+
+    print np.shape(img)
+    xedge = np.arange(np.shape(img)[1])[init[0]-L:init[0]+L+1]
+    yedge = np.arange(np.shape(img)[0])[init[1]-L:init[1]+L+1]
+    print xedge
+    print yedge
 
     Ibar = (1.0 / box_edge) * np.sum(Isum)
     Jbar = (1.0 / box_edge) * np.sum(Jsum)
@@ -160,7 +133,7 @@ def flux_weighted_centroid(img, box_edge, init=None, to_plot=False):
     xc = xc_top / xc_bot
     yc = yc_top / yc_bot
 
-#    print xc, yc
+#    logging.debug("init %.2f %.2f c %.2f %.2f", init[0], init[1], xc, yc)
 
 
     if to_plot:
@@ -175,21 +148,20 @@ def flux_weighted_centroid(img, box_edge, init=None, to_plot=False):
                    ax=ax2)
 
         ax3 = plt.subplot2grid(grid, (2,0), colspan=2)
-        ax3.plot(xedge, Isum, lw=2)
+        ax3.step(xedge, Isum, lw=2, where="mid")
         ax4 = plt.subplot2grid(grid, (3,0), colspan=2)
-        ax4.plot(yedge, Jsum, lw=2)
+        ax4.step(yedge, Jsum, lw=2, where="mid")
 
         ax3.axhline(Ibar,color="g", ls=":", lw=3)
         ax4.axhline(Jbar,color="g", ls=":", lw=3)
 
-        ax3.axvline(init[0],color="k", ls="--", lw=2)
-        ax4.axvline(init[1],color="k", ls="--", lw=2)
+        ax3.axvline(raw_init[0],color="k", ls="--", lw=2)
+        ax4.axvline(raw_init[1],color="k", ls="--", lw=2)
         ax3.axvline(xc,color="r", lw=2)
         ax4.axvline(yc,color="r", lw=2)
 
-        # They're labeled backwards up to here, just live with it...
-        ax3.set_xlabel("Y (Dec) Pixel")
-        ax4.set_xlabel("X (RA) Pixel")
+        ax3.set_xlabel("X Pixel")
+        ax4.set_xlabel("Y Pixel")
         ax3.set_ylabel("Flux")
         ax3.set_ylabel("Flux")
 
@@ -197,7 +169,7 @@ def flux_weighted_centroid(img, box_edge, init=None, to_plot=False):
         ax2.set_xticklabels(np.append(xedge,xedge[-1]+1))
         ax2.set_yticklabels(np.append(yedge,yedge[-1]+1))
 
-        plt.suptitle("TEST",fontsize="large")
+#        plt.suptitle("TEST",fontsize="large")
         plt.tight_layout()
 
     return np.array([xc, yc])

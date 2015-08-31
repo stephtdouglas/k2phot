@@ -51,10 +51,10 @@ def centroids(ax, init, coords=None, sources=None):
         table of sources from daofind
     """
 
-    ax.plot(init[1], init[0], "ko", mec="w", ms=10)
+    ax.plot(init[0], init[1], "ko", mec="w", ms=10)
 
     if coords is not None:
-        ax.plot(coords[1], coords[0], "r*", ms=13)
+        ax.plot(coords[0], coords[1], "r*", ms=13)
 
     if sources is not None:
         for i, source in enumerate(sources):
@@ -120,7 +120,7 @@ def lcs(lc_filename, epic=None):
     fig = plt.figure(figsize=(11,8))
     plt.suptitle(outfile)
 
-    colors = np.array(["r", "k", "c", "m", "b", "g"])
+    #colors = np.array(["r", "k", "c", "m", "b", "g"])
 
     t = lcs["t"]
 
@@ -129,6 +129,8 @@ def lcs(lc_filename, epic=None):
         ax = plt.subplot(num_aps, 1, i+1)
 
         good = np.where((t>2065) & (np.isfinite(lcs[colname])==True))[0]
+        if len(good)==0:
+            continue
 
         median = np.median(lcs[colname][good])
         stdev = np.std(lcs[colname][good])
@@ -137,7 +139,7 @@ def lcs(lc_filename, epic=None):
         three_sig = np.where(abs(median - lcs[colname])<=(3*stdev))[0]
         this_good = np.intersect1d(good, three_sig)
 
-        ax.plot(t[this_good], lcs[colname][this_good], ".", color=colors[i])
+        ax.plot(t[this_good], lcs[colname][this_good], ".", color="k")
 #        ax.plot(t[good], lcs[colname.replace("flux","bkgd")][good], ".",
 #                color="Grey")
         ax.set_ylabel(colname)
@@ -277,6 +279,6 @@ def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
              color="Purple", ms=25, alpha=0.8)
 
     plt.suptitle("EPIC {}".format(epic), fontsize="large")
-    plt.tight_layout()
+    #plt.tight_layout()
 
     plt.savefig("plot_outputs/ktwo{}-c0{}_fourby.png".format(epic, campaign))
