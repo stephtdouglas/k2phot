@@ -29,8 +29,8 @@ def stamp(img, maskmap, ax=None, cmap="cubehelix"):
     # I remain unconvinced that these are labelled right...
     # but the coordinates are plotting right, and this matches the DSS images 
     # (except East and West are flipped)!
-    ax.set_ylabel("Axis 2 (Dec pixels)")
-    ax.set_xlabel("Axis 1 (RA pixels)")
+    ax.set_ylabel("Y")
+    ax.set_xlabel("X")
 
     return ax
 
@@ -75,7 +75,7 @@ def apertures(ax, ap_center, ap_radii, color="w"):
         radii of apertures in pixel coordinates
     """
 
-    plot_center = np.array([ap_center[1], ap_center[0]])
+    plot_center = np.array([ap_center[0], ap_center[1]])
 
     for rad in ap_radii:
         logging.debug("rad %f", rad)
@@ -259,10 +259,10 @@ def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
 
     lcs = at.read("lcs/ktwo{}-c0{}.csv".format(epic, campaign))
 
-    ax3.set_ylim(min(lcs["x"])*0.9,max(lcs["x"])*1.1)
-    ax3.set_xlim(min(lcs["y"])*0.9,max(lcs["y"])*1.1)
+    ax3.set_xlim(np.floor(min(lcs["x"])),np.ceil(max(lcs["x"])))
+    ax3.set_ylim(np.floor(min(lcs["y"])),np.ceil(max(lcs["y"])))
 
-    xyt = ax3.scatter(lcs["y"], lcs["x"], c=lcs["t"],  
+    xyt = ax3.scatter(lcs["x"], lcs["y"], c=lcs["t"],  
                       edgecolor="none", alpha=0.5,  
                       vmin=np.percentile(lcs["t"], 5), 
                       vmax=np.percentile(lcs["t"], 95),

@@ -102,18 +102,18 @@ def flux_weighted_centroid(img, box_edge, init=None, to_plot=False):
     else:
         raw_init = np.copy(init)
         init = np.asarray(np.round(init), int)
-    print init, raw_init
+#    print init, raw_init
 
     sub_img = img[init[1]-L:init[1]+L+1, init[0]-L:init[0]+L+1]
 
     Isum = np.sum(sub_img, axis=0)
     Jsum = np.sum(sub_img, axis=1)
 
-    print np.shape(img)
+#    print np.shape(img)
     xedge = np.arange(np.shape(img)[1])[init[0]-L:init[0]+L+1]
     yedge = np.arange(np.shape(img)[0])[init[1]-L:init[1]+L+1]
-    print xedge
-    print yedge
+#    print xedge
+#    print yedge
 
     Ibar = (1.0 / box_edge) * np.sum(Isum)
     Jbar = (1.0 / box_edge) * np.sum(Jsum)
