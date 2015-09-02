@@ -14,7 +14,10 @@ def get_data(filename):
     # Extension 2 is the aperture mask
 
     table = hdu[1].data[:]
-    times = table['TIME']
+    # Thruster fires and other issues are flagged in the headers
+    bad_frames = np.where(table["QUALITY"]>0)[0]
+
+    times = np.delete(table['TIME'], bad_frames)
     # C4 and later were background subtracted, but local will be
     # better than the global background they used
     if "c04" in filename:
@@ -23,8 +26,6 @@ def get_data(filename):
         pixels0 = table["FLUX"]
     pixels0[np.isnan(pixels0)] = 0
 
-    # Thruster fires and other issues are flagged in the headers
-    bad_frames = np.where(table["QUALITY"]>0)[0]
     pixels = np.delete(pixels0, bad_frames, axis=0)
 
     maskmap = hdu[2].data
