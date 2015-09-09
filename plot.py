@@ -244,20 +244,28 @@ def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
 
     # First plot coadded image
     ax1 = plt.subplot(221)
-    stamp(coadd, maskmap, ax=ax1, cmap="gray")
+    stamp(coadd, maskmap, ax=ax1, cmap="Greys")
     centroids(ax1, init, coords, sources)
 
-    # Then plot DSS/SDSS image (empty for now)
-#    ax2 = plt.subplot(222)
+    # Then plot DSS/SDSS image if available
+    dssname = "{0}d/fc_{0}d_dssdss2red.fits".format(epic)
+    if os.path.exists("/home/stephanie/code/python/k2phot/ss_finders/"+dssname):
+        ax2 = plt.subplot(222)
+        hdu = fits.open(dssname)
+        pix = hdu[0].data
+        hdu.close()
+        ax2.matshow(pix, origin='lower', cmap='Greys', norm=colors.LogNorm())
+        ax2.set_xlabel("RA (pix)")
+        ax2.set_ylabel("Dec (pix)")
 
     # Then the pixel motion across the CCD
     ax3 = plt.subplot(223)
     divider3 = make_axes_locatable(ax3)
-    cax3 = divider3.append_axes("right", size="5%", pad=0.05)
+    cax3 = divider3.append_axes("bottom", size="5%", pad=0.35)
 
     stamp(coadd, maskmap, ax=ax3, cmap="gray")
 
-    lcs = at.read("lcs/ktwo{}-c0{}.csv".format(epic, campaign))
+    lcs = at.read("/home/stephanie/code/python/k2phot/lcs/ktwo{}-c0{}.csv".format(epic, campaign))
 
     ax3.set_xlim(np.floor(min(lcs["x"])),np.ceil(max(lcs["x"])))
     ax3.set_ylim(np.floor(min(lcs["y"])),np.ceil(max(lcs["y"])))
@@ -268,7 +276,7 @@ def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
                       vmax=np.percentile(lcs["t"], 95),
                       cmap="gnuplot")
     cbar_ticks = np.asarray(np.percentile(lcs["t"],np.arange(10,100,20)),int)
-    cbar1 = fig.colorbar(xyt, cax=cax3, ticks=cbar_ticks)
+    cbar1 = fig.colorbar(xyt, cax=cax3, ticks=cbar_ticks, orientation="horizontal")
     cbar1.set_label("Time (d)")
 
     # Then sky coordinates with the object position overlaid
@@ -278,7 +286,8 @@ def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
     plt.plot(maskheader["RA_OBJ"], maskheader["DEC_OBJ"], '*', 
              color="Purple", ms=25, alpha=0.8)
 
-    plt.suptitle("EPIC {}".format(epic), fontsize="large")
-    #plt.tight_layout()
+    plt.suptitle("EPIC {}".format(epic), fontsize="xx-large")
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.9)
 
-    plt.savefig("plot_outputs/ktwo{}-c0{}_fourby.png".format(epic, campaign))
+    plt.savefig("/home/stephanie/code/python/k2phot/plot_outputs/ktwo{}-c0{}_fourby.png".format(epic, campaign))
