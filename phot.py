@@ -157,7 +157,7 @@ def make_circ_lc(image_list, maskmap, times, start_center, ap_radii,
         
         # Find the actual centroid in this image, using start_center as a guess
         # (I should make a flag if the centroid has moved more than a pixel or two)
-        logging.debug(time)
+        #logging.debug(time)
         coords = centroid.flux_weighted_centroid(image_list[i], fw_box,
                                                  init=start_center,
                                                  to_plot=False)
@@ -169,7 +169,7 @@ def make_circ_lc(image_list, maskmap, times, start_center, ap_radii,
             (coords[0]<0) or (coords[1]<0) or 
             (coords[0]>100) or (coords[1]>100)
             ):
-            logging.debug(coords[:2])
+            #logging.debug(coords[:2])
             f.write(",NaN,NaN"*len(ap_radii)) 
         else:
 
@@ -248,7 +248,7 @@ def make_ellip_lc(image_list, maskmap, times, start_center, a, b, ap_radii,
             (coords[0]<0) or (coords[1]<0) or 
             (coords[0]>100) or (coords[1]>100)
             ):
-            logging.debug(coords[:2])
+            #logging.debug(coords[:2])
             f.write(",NaN,NaN"*len(ap_radii)) 
         else:
 

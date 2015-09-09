@@ -81,7 +81,7 @@ def apertures(ax, ap_center, ap_radii, color="w"):
     plot_center = np.array([ap_center[0], ap_center[1]])
 
     for rad in ap_radii:
-        logging.debug("rad %f", rad)
+        #logging.debug("rad %f", rad)
         ap = plt.Circle(plot_center, rad, color=color, fill=False, linewidth=2)
         ax.add_artist(ap)
 
@@ -102,7 +102,7 @@ def ellipses(ax, ap_center, a, b, theta, ap_radii, color="w"):
     #plot_center = np.array([ap_center[1], ap_center[0]])
 
     for rad in ap_radii:
-        logging.debug("rad %f", rad)
+        #logging.debug("rad %f", rad)
         ap = photutils.EllipticalAperture(ap_center, a*rad, b*rad, theta=theta)
         ap.plot(ax=ax, color=color, linewidth=2)#kwargs={"color":color,"linewidth":2})
 

@@ -44,7 +44,7 @@ def run_one(filename, output_f=None, extract_companions=False):
     min_box = np.shape(maskmap)[min_ax]
     if min_box>=9:
        min_box = 9
-       logging.debug("min_box set to 9")
+       logging.info("min_box set to 9")
     elif min_ax==0:
         for row in maskmap:
             row_len = len(np.where(row>0)[0])
@@ -176,7 +176,8 @@ def run_list(listname, save_output=False):
         output_f.close()
 
 if __name__=="__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.INFO, 
+                        format="%(asctime)s - %(name) - %(message)s)
     
     # on Yeti use c4_tpfs_yeti.lst
 
