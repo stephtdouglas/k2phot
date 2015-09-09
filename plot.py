@@ -9,7 +9,9 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import ticker
 import astropy.io.ascii as at
 from astropy.io import fits
+from astropy.wcs import WCS
 import photutils
+import pywcsgrid2
 import K2fov.projection as proj
 import K2fov.fov as fov
 from K2fov.K2onSilicon import angSepVincenty,getRaDecRollFromFieldnum
@@ -243,20 +245,62 @@ def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
     fig = plt.figure(figsize=(8,8))
 
     # First plot coadded image
-    ax1 = plt.subplot(221)
-    stamp(coadd, maskmap, ax=ax1, cmap="Greys")
+#    ax1 = plt.subplot(221)
+#    stamp(coadd, maskmap, ax=ax1, cmap="Greys")
+    ax1 = pywcsgrid2.subplot(221, header=maskheader)
+    ax1.matshow(coadd, origin='lower', cmap='Greys', norm=colors.LogNorm())
+    ax1.add_compass(loc=1)
     centroids(ax1, init, coords, sources)
+#    ax1.tick_params(labelleft=False, labelbottom=False)
+#    ax1.axis["bottom"].major_ticklabels.set_visible(False)
+#    ax1.axis["left"].major_ticklabels.set_visible(False)
+    ax1.set_xlim(-0.5,maskmap.shape[1]-0.5)
+    ax1.set_ylim(-0.5,maskmap.shape[0]-0.5)
+
 
     # Then plot DSS/SDSS image if available
     dssname = "{0}d/fc_{0}d_dssdss2red.fits".format(epic)
+    sdssname = "{0}d/fc_{0}d_sdss (dr7)z.fits".format(epic)
     if os.path.exists("/home/stephanie/code/python/k2phot/ss_finders/"+dssname):
-        ax2 = plt.subplot(222)
-        hdu = fits.open(dssname)
+        # Open image file
+        hdu = fits.open("/home/stephanie/code/python/k2phot/ss_finders/"+dssname)
         pix = hdu[0].data
+        hdr = hdu[0].header
         hdu.close()
-        ax2.matshow(pix, origin='lower', cmap='Greys', norm=colors.LogNorm())
-        ax2.set_xlabel("RA (pix)")
-        ax2.set_ylabel("Dec (pix)")
+
+    elif os.path.exists("/home/stephanie/code/python/k2phot/ss_finders/"+sdssname):
+        # Open image file
+        hdu = fits.open("/home/stephanie/code/python/k2phot/ss_finders/"+sdssname)
+        pix = hdu[0].data
+        hdr = hdu[0].header
+        hdu.close()
+
+    # Plot on a sky coord image
+    ax2 = pywcsgrid2.subplot(222, header=hdr)
+    ax2.matshow(pix, origin='lower', cmap='Greys', norm=colors.LogNorm())
+    ax2.add_compass(loc=1)
+
+    wcs = WCS(maskheader)
+
+    xpixlims = np.array([0,np.shape(maskmap)[1]])
+    ypixlims = np.array([0,np.shape(maskmap)[0]])
+    corners = np.zeros(8).reshape((4,2))
+    cnt = 0
+    for i in range(2):
+        for j in range(2)[::-1]:
+            wcs_corner = wcs.wcs_pix2world(xpixlims[i],ypixlims[j],0.0)
+            corners[cnt] = wcs_corner[:]
+            cnt += 1
+    for i in range(4):
+        if i<3:
+            j = i+1
+        else:
+            j = 0
+#        print [corners[i][0],corners[j][0]]
+#        print [corners[i][1],corners[j][1]]
+        ax2["fk5"].plot([corners[i][0],corners[j][0]], 
+                        [corners[i][1],corners[j][1]], "r-")
+
 
     # Then the pixel motion across the CCD
     ax3 = plt.subplot(223)
