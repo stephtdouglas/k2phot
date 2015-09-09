@@ -109,7 +109,8 @@ def ellip_flux(image, maskmap, ap_center, ap_radii, a, b, theta, background,
     return ap_fluxes
 
 def make_circ_lc(image_list, maskmap, times, start_center, ap_radii,
-            output_filename, ap_type="circular", ellipse_kwargs=None):
+                 output_filename, fw_box=9, ap_type="circular", 
+                 ellipse_kwargs=None):
     """
     Make a lightcurve by computing aperture photometry for 
     all images in a target pixel file.
@@ -133,6 +134,9 @@ def make_circ_lc(image_list, maskmap, times, start_center, ap_radii,
 
     output_filename: string, ending in .csv
 
+    fw_box: odd integer, default=9
+        box size for flux-weighted centroid
+
     ap_type: string
         "circular" (default) or "elliptical"
 
@@ -154,7 +158,7 @@ def make_circ_lc(image_list, maskmap, times, start_center, ap_radii,
         # Find the actual centroid in this image, using start_center as a guess
         # (I should make a flag if the centroid has moved more than a pixel or two)
         logging.debug(time)
-        coords = centroid.flux_weighted_centroid(image_list[i], 9, # 7, #5,
+        coords = centroid.flux_weighted_centroid(image_list[i], fw_box,
                                                  init=start_center,
                                                  to_plot=False)
 
