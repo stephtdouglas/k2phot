@@ -16,6 +16,7 @@ import K2fov.projection as proj
 import K2fov.fov as fov
 from K2fov.K2onSilicon import angSepVincenty,getRaDecRollFromFieldnum
 
+from k2phot.config import *
 import k2spin.plot
 
 def stamp(img, maskmap, ax=None, cmap="cubehelix"):
@@ -116,7 +117,6 @@ def lcs(lc_filename, epic=None):
     num_aps = (len(lcs[0]) - 4) / 2
     ap_cols = []
     for i in np.arange(4, (4 + num_aps * 2), 2):
-        print lcs.dtype.names[i]
         ap_cols.append(lcs.dtype.names[i])
 
     fig = plt.figure(figsize=(11,8))
@@ -146,16 +146,16 @@ def lcs(lc_filename, epic=None):
 #                color="Grey")
         ax.set_ylabel(colname)
 
-        if (epic is not None) and ("3.0" in colname):
-            lc_compare(ax, epic, colname="Flux5")
-        elif (epic is not None) and ("5.0" in colname):
-            lc_compare(ax, epic, colname="Flux3")
+#        if (epic is not None) and ("3.0" in colname):
+#            lc_compare(ax, epic, colname="Flux5")
+#        elif (epic is not None) and ("5.0" in colname):
+#            lc_compare(ax, epic, colname="Flux3")
 
     ax.set_xlabel("Time (d)")
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)
 
-    plt.savefig("plot_outputs/{}_lcs.png".format(outfile))
+    plt.savefig(base_path+"plot_outputs/{}_lcs.png".format(outfile))
 
 def lc_compare(ax, epic, colname="Flux3"):
     """Overplot lightcurves from other authors."""
@@ -185,12 +185,12 @@ def plot_xy(lc_filename, epic=None):
     k2spin.plot.plot_xy(lcs["x"], lcs["y"], lcs["t"],
                         lcs["flux_3.0"], "Flux 3.0")
     plt.suptitle(outfilename, fontsize="large")
-    plt.savefig("plot_outputs/{}_f3pos.png".format(outfilename))
+    plt.savefig(base_path+"plot_outputs/{}_f3pos.png".format(outfilename))
 
     k2spin.plot.plot_xy(lcs["x"], lcs["y"], lcs["t"],
                         lcs["flux_5.0"], "Flux 5.0")
     plt.suptitle(outfilename, fontsize="large")
-    plt.savefig("plot_outputs/{}_f5pos.png".format(outfilename))
+    plt.savefig(base_path+"plot_outputs/{}_f5pos.png".format(outfilename))
 
     if epic is not None:
         cfile= "cody/EPIC_{}_xy_ap5.0_3.0_fixbox.dat".format(epic)
@@ -199,7 +199,7 @@ def plot_xy(lc_filename, epic=None):
             k2spin.plot.plot_xy(cody["Xpos"], cody["Ypos"],
                                 cody["Dates"], cody["Flux5"], "AMC Flux 5.0")
             plt.suptitle("{} AMC Position".format(epic))
-            plt.savefig("plot_outputs/{}_AMCpos.png".format(outfilename))
+            plt.savefig(base_path+"plot_outputs/{}_AMCpos.png".format(outfilename))
 
 
 def plot_chips(ax,fieldnum):
@@ -251,9 +251,6 @@ def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
     ax1.matshow(coadd, origin='lower', cmap='Greys', norm=colors.LogNorm())
     ax1.add_compass(loc=1)
     centroids(ax1, init, coords, sources)
-#    ax1.tick_params(labelleft=False, labelbottom=False)
-#    ax1.axis["bottom"].major_ticklabels.set_visible(False)
-#    ax1.axis["left"].major_ticklabels.set_visible(False)
     ax1.set_xlim(-0.5,maskmap.shape[1]-0.5)
     ax1.set_ylim(-0.5,maskmap.shape[0]-0.5)
 
@@ -261,16 +258,16 @@ def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
     # Then plot DSS/SDSS image if available
     dssname = "{0}d/fc_{0}d_dssdss2red.fits".format(epic)
     sdssname = "{0}d/fc_{0}d_sdss (dr7)z.fits".format(epic)
-    if os.path.exists("/home/stephanie/code/python/k2phot/ss_finders/"+dssname):
+    if os.path.exists(base_path+"ss_finders/"+dssname):
         # Open image file
-        hdu = fits.open("/home/stephanie/code/python/k2phot/ss_finders/"+dssname)
+        hdu = fits.open(base_path+"ss_finders/"+dssname)
         pix = hdu[0].data
         hdr = hdu[0].header
         hdu.close()
 
-    elif os.path.exists("/home/stephanie/code/python/k2phot/ss_finders/"+sdssname):
+    elif os.path.exists(base_path+"ss_finders/"+sdssname):
         # Open image file
-        hdu = fits.open("/home/stephanie/code/python/k2phot/ss_finders/"+sdssname)
+        hdu = fits.open(base_path+"ss_finders/"+sdssname)
         pix = hdu[0].data
         hdr = hdu[0].header
         hdu.close()
@@ -309,7 +306,7 @@ def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
 
     stamp(coadd, maskmap, ax=ax3, cmap="gray")
 
-    lcs = at.read("/home/stephanie/code/python/k2phot/lcs/ktwo{}-c0{}.csv".format(epic, campaign))
+    lcs = at.read("{0}lcs/ktwo{1}-c0{2}.csv".format(base_path, epic, campaign))
 
     ax3.set_xlim(np.floor(min(lcs["x"])),np.ceil(max(lcs["x"])))
     ax3.set_ylim(np.floor(min(lcs["y"])),np.ceil(max(lcs["y"])))
@@ -320,7 +317,8 @@ def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
                       vmax=np.percentile(lcs["t"], 95),
                       cmap="gnuplot")
     cbar_ticks = np.asarray(np.percentile(lcs["t"],np.arange(10,100,20)),int)
-    cbar1 = fig.colorbar(xyt, cax=cax3, ticks=cbar_ticks, orientation="horizontal")
+    cbar1 = fig.colorbar(xyt, cax=cax3, ticks=cbar_ticks, 
+                         orientation="horizontal")
     cbar1.set_label("Time (d)")
 
     # Then sky coordinates with the object position overlaid
@@ -334,4 +332,6 @@ def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
     plt.tight_layout()
     plt.subplots_adjust(top=0.9)
 
-    plt.savefig("/home/stephanie/code/python/k2phot/plot_outputs/ktwo{}-c0{}_fourby.png".format(epic, campaign))
+    plt.savefig("{0}plot_outputs/ktwo{1}-c0{2}_fourby.png".format(base_path, 
+                                                                  epic,  
+                                                                  campaign))

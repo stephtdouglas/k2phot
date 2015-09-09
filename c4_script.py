@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from astropy.stats import sigma_clipped_stats
 
+from k2phot.config import *
 from k2phot import centroid
 from k2phot import tpf_io
 from k2phot import phot
@@ -16,6 +17,21 @@ alphas = "BCDEFGHIJKLMN"
 today = date.today().isoformat()
 
 def run_one(filename, output_f=None, extract_companions=False):
+    """Generate light curves from one TPF 
+
+    Inputs
+    ------
+    filename: string
+        FULL PATH to TPF
+
+    output_f: file object, optional
+        if provided, various diagnostic/informational data will be written out.
+    
+    extract_companions: bool, optional, default=False
+        if true, light curves and plots will also be generated for any other
+        DAOfind sources in the coadded image
+
+    """
 
     outfilename = filename.split("/")[-1][:-14]
     logging.info(outfilename)
@@ -71,16 +87,16 @@ def run_one(filename, output_f=None, extract_companions=False):
 
     ap_type = "circ"
 #    phot.make_circ_lc(pixels, maskmap, times, init, radii,
-#                 "lcs/{}.csv".format(outfilename), fw_box)
+#                      "base_path+lcs/{}.csv".format(outfilename), fw_box)
 
     epic = outfilename.split("-")[0][4:]
     logging.info(epic)
-#    plot.lcs("lcs/{}.csv".format(outfilename), epic=epic)
+#    plot.lcs(base_path+"lcs/{}.csv".format(outfilename), epic=epic)
 
     plot.plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
                    campaign=4)
 
-#    plot.plot_xy("lcs/{}.csv".format(outfilename), epic=epic)
+#    plot.plot_xy(base_path+"lcs/{}.csv".format(outfilename), epic=epic)
 
     if output_f is not None:
         output_f.write("\n{},{}".format(outfilename,epic))
@@ -120,24 +136,29 @@ def run_one(filename, output_f=None, extract_companions=False):
             ax = plot.stamp(coadd, maskmap)
             plot.centroids(ax, init2, coords2, sources)
             plot.apertures(ax, init2, radii)
-            plt.savefig("plot_outputs/{}{}_stamp.png".format(outfilename,
-                                                              sletter))
+            plt.savefig(base_path+"plot_outputs/{}{}_stamp.png".format(outfilename,sletter))
             plt.title(outfilename+sletter)
 
             phot.make_circ_lc(pixels, maskmap, times, init2[::-1], radii,
-                              "lcs/{}{}.csv".format(outfilename, sletter))
-            plot.lcs("lcs/{}{}.csv".format(outfilename, sletter), epic=epic)
+                              base_path+"lcs/{}{}.csv".format(outfilename, 
+                                                              sletter))
+            plot.lcs(base_path+"lcs/{}{}.csv".format(outfilename, sletter), 
+                     epic=epic)
     
             plt.close("all")
 
 def run_list(listname, save_output=False):
 
+    # Need to change base_path for tpfs too before running on Yeti
+    # although base_path is in run_one, it expects the full path to tpfs
+ 
     tpfs = at.read(listname)
 
     output_f = None
     
     if save_output:
-        output_f = open("tables/{0}_{1}.csv".format(listname[:-4], today), "w")
+        tfile = base_path+"tables/{0}_phot_{1}.csv".format(listname[:-4], today)
+        output_f = open(, "w")
         output_f.write("output_file, EPIC, RA_OBJ, DEC_OBJ, pix_ra, pix_dec")
         output_f.write(", kpmag, n_src, daofind_fwhm, daofind_threshold")
         output_f.write(", daofind_sharplo, daofind_sharphi, centroid_box")
@@ -156,8 +177,8 @@ def run_list(listname, save_output=False):
 
 if __name__=="__main__":
     logging.basicConfig(level=logging.INFO)
-
-    output_f = None
+    
+    # on Yeti use c4_tpfs_yeti.lst
 
 #    filename = "/home/stephanie/Dropbox/c4_tpf/ktwo210408563-c04_lpd-targ.fits"
 #    run_one(filename)
@@ -165,7 +186,6 @@ if __name__=="__main__":
 
 #    run_list("c4_tpfs_centroidproblems.lst", save_output=True)
 #    run_list("c4_spd_now_lpd.lst", save_output=True)
-
     run_list("c4_tpfs.lst", save_output=True)
 
     
