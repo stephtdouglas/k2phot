@@ -256,18 +256,18 @@ def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
 
 
     # Then plot DSS/SDSS image if available
-    dssname = "{0}d/fc_{0}d_dssdss2red.fits".format(epic)
-    sdssname = "{0}d/fc_{0}d_sdss (dr7)z.fits".format(epic)
-    if os.path.exists(base_path+"ss_finders/"+dssname):
+    dssname = base_path+"/ss_finders/{0}d/fc_{0}d_dssdss2red.fits".format(epic)
+    sdssname = base_path+"/ss_finders/{0}d/fc_{0}d_sdss (dr7)z.fits".format(epic)
+    if os.path.exists(dssname):
         # Open image file
-        hdu = fits.open(base_path+"ss_finders/"+dssname)
+        hdu = fits.open(dssname)
         pix = hdu[0].data
         hdr = hdu[0].header
         hdu.close()
 
-    elif os.path.exists(base_path+"ss_finders/"+sdssname):
+    elif os.path.exists(sdssname):
         # Open image file
-        hdu = fits.open(base_path+"ss_finders/"+sdssname)
+        hdu = fits.open(sdssname)
         pix = hdu[0].data
         hdr = hdu[0].header
         hdu.close()

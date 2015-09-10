@@ -177,7 +177,7 @@ def run_list(listname, save_output=False):
 
 if __name__=="__main__":
     logging.basicConfig(level=logging.INFO, 
-                        format="%(asctime)s - %(name) - %(message)s)
+                        format="%(asctime)s - %(name) - %(message)s")
     
     # on Yeti use c4_tpfs_yeti.lst
 
