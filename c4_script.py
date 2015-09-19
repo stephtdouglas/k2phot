@@ -15,7 +15,7 @@ from k2phot import plot
 alphas = "BCDEFGHIJKLMN"
 today = date.today().isoformat()
 
-def run_one(filename, output_f=None, extract_companions=False):
+def run_one(filename, output_f=None, extract_companions=False, fw_box=None):
 
     outfilename = filename.split("/")[-1][:-14]
     logging.info(outfilename)
@@ -24,26 +24,28 @@ def run_one(filename, output_f=None, extract_companions=False):
     init = centroid.init_pos(maskheader)
     logging.info("init %f %f", init[0], init[1])
 
-    min_ax = np.argmin(np.shape(maskmap))
-    min_box = np.shape(maskmap)[min_ax]
-    if min_box>=9:
-       min_box = 9
-       logging.debug("min_box set to 9")
-    elif min_ax==0:
-        for row in maskmap:
-            row_len = len(np.where(row>0)[0])
-            if row_len < min_box:
-                min_box = row_len
+    if fw_box is None:
+        min_ax = np.argmin(np.shape(maskmap))
+        min_box = np.shape(maskmap)[min_ax]
+        if min_box>=9:
+           min_box = 9
+           logging.debug("min_box set to 9")
+        elif min_ax==0:
+            for row in maskmap:
+                row_len = len(np.where(row>0)[0])
+                if row_len < min_box:
+                    min_box = row_len
+                    logging.debug("new min_box %d", min_box)
+        else:
+            for i in range(np.shape(maskmap)[1]):
+                col = maskmap[:, i]
+                col_len = len(np.where(col>0)[0])
+                if col_len < min_box:
+                    min_box = row_len
                 logging.debug("new min_box %d", min_box)
-    else:
-        for i in range(np.shape(maskmap)[1]):
-            col = maskmap[:, i]
-            col_len = len(np.where(col>0)[0])
-            if col_len < min_box:
-                min_box = row_len
-                logging.debug("new min_box %d", min_box)
-
-    fw_box = (min_box / 2) * 2 + 1
+        
+        fw_box = (min_box / 2) * 2 + 1
+    
     logging.info("fw box %d",fw_box)
 
     coadd = np.sum(pixels,axis=0)
@@ -66,21 +68,26 @@ def run_one(filename, output_f=None, extract_companions=False):
     logging.debug("sources")
     logging.debug(sources)
 
-    ap_min, ap_max, ap_step = 2.5, 7, 0.5
+    ap_min, ap_max, ap_step = 2, 7, 0.5
     radii = np.arange(ap_min, ap_max, ap_step)
 
+    ax = plot.stamp(coadd, maskmap)
+    plot.centroids(ax, init, coords, sources)
+    plot.apertures(ax, init, radii)
+    plt.savefig("plot_outputs/{}_stamp.png".format(outfilename))
+
     ap_type = "circ"
-#    phot.make_circ_lc(pixels, maskmap, times, init, radii,
-#                 "lcs/{}.csv".format(outfilename), fw_box)
+    phot.make_circ_lc(pixels, maskmap, times, init, radii,
+                 "lcs/{}.csv".format(outfilename), fw_box)
 
     epic = outfilename.split("-")[0][4:]
     logging.info(epic)
-#    plot.lcs("lcs/{}.csv".format(outfilename), epic=epic)
+    plot.lcs("lcs/{}.csv".format(outfilename), epic=epic)
 
-    plot.plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
-                   campaign=4)
+    plot.plot_four(epic, filename, coadd, maskmap, maskheader, init, coords, 
+                   sources, campaign=4)
 
-#    plot.plot_xy("lcs/{}.csv".format(outfilename), epic=epic)
+    plot.plot_xy("lcs/{}.csv".format(outfilename), epic=epic)
 
     if output_f is not None:
         output_f.write("\n{},{}".format(outfilename,epic))
@@ -130,7 +137,7 @@ def run_one(filename, output_f=None, extract_companions=False):
     
             plt.close("all")
 
-def run_list(listname, save_output=False):
+def run_list(listname, save_output=False, indiv_boxes=False):
 
     tpfs = at.read(listname)
 
@@ -143,11 +150,13 @@ def run_list(listname, save_output=False):
         output_f.write(", daofind_sharplo, daofind_sharphi, centroid_box")
         output_f.write(", ap_type, ap_min, ap_max, ap_step")
 
-    for fname in tpfs["filename"]:
+    for i, fname in enumerate(tpfs["filename"]):
         if os.path.exists(fname)==True:
             logging.warning(fname)
-            run_one(fname)
-#            run_one(fname, output_f)
+            if indiv_boxes:
+                 run_one(fname, output_f, fw_box=tpfs["fw_box"][i])
+            else:
+                 run_one(fname, output_f)
         else:
             logging.warning("skipping %s", fname)
 
@@ -159,13 +168,13 @@ if __name__=="__main__":
 
     output_f = None
 
-#    filename = "/home/stephanie/Dropbox/c4_tpf/ktwo210408563-c04_lpd-targ.fits"
+    filename = "/home/stephanie/Dropbox/c4_tpf/ktwo211041649-c04_lpd-targ.fits"
 #    run_one(filename)
 
 
-#    run_list("c4_tpfs_centroidproblems.lst", save_output=True)
-#    run_list("c4_spd_now_lpd.lst", save_output=True)
+#    run_list("c4_tpfs.lst", save_output=True)
 
-    run_list("c4_tpfs.lst", save_output=True)
+#    run_list("c4_tpfs_extra_box.csv", save_output=True, indiv_boxes=True)
+    run_list("c4_tpfs_box.csv", save_output=True, indiv_boxes=True)
 
     

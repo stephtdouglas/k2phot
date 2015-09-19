@@ -237,69 +237,67 @@ def setup_k2_axes(ax,extents=None):
 
 
 
-def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources, 
-              campaign=4):
+def plot_four(epic, filename, coadd, maskmap, maskheader, init, coords, 
+              sources, campaign=4):
 
     logging.info("Plot four %s", epic)
 
     fig = plt.figure(figsize=(8,8))
 
-    # First plot coadded image
-#    ax1 = plt.subplot(221)
-#    stamp(coadd, maskmap, ax=ax1, cmap="Greys")
-    ax1 = pywcsgrid2.subplot(221, header=maskheader)
-    ax1.matshow(coadd, origin='lower', cmap='Greys', norm=colors.LogNorm())
-    ax1.add_compass(loc=1)
-    centroids(ax1, init, coords, sources)
-#    ax1.tick_params(labelleft=False, labelbottom=False)
-#    ax1.axis["bottom"].major_ticklabels.set_visible(False)
-#    ax1.axis["left"].major_ticklabels.set_visible(False)
-    ax1.set_xlim(-0.5,maskmap.shape[1]-0.5)
-    ax1.set_ylim(-0.5,maskmap.shape[0]-0.5)
+    hdu2 = fits.open(filename)
+    dataheader = hdu2[1].header
+    hdu2.close()
+    keysel = np.empty(13, "S6")
+    keysel[:] = "binary"
+    w2 = WCS(dataheader, colsel=[5], keysel=keysel)
 
-
-    # Then plot DSS/SDSS image if available
+    # Plot DSS/SDSS image if available
     dssname = "{0}d/fc_{0}d_dssdss2red.fits".format(epic)
     sdssname = "{0}d/fc_{0}d_sdss (dr7)z.fits".format(epic)
     if os.path.exists("/home/stephanie/code/python/k2phot/ss_finders/"+dssname):
         # Open image file
         hdu = fits.open("/home/stephanie/code/python/k2phot/ss_finders/"+dssname)
-        pix = hdu[0].data
-        hdr = hdu[0].header
+        pix, hdr = hdu[0].data, hdu[0].header
         hdu.close()
 
     elif os.path.exists("/home/stephanie/code/python/k2phot/ss_finders/"+sdssname):
         # Open image file
         hdu = fits.open("/home/stephanie/code/python/k2phot/ss_finders/"+sdssname)
-        pix = hdu[0].data
-        hdr = hdu[0].header
+        pix, hdr = hdu[0].data, hdu[0].header
         hdu.close()
 
-    # Plot on a sky coord image
-    ax2 = pywcsgrid2.subplot(222, header=hdr)
-    ax2.matshow(pix, origin='lower', cmap='Greys', norm=colors.LogNorm())
-    ax2.add_compass(loc=1)
+    else:
+        pix = None
 
-    wcs = WCS(maskheader)
+    
+    # Set up the GridHelper to merge the axes
+    grid_helper = pywcsgrid2.GridHelper(wcs=w2)
 
-    xpixlims = np.array([0,np.shape(maskmap)[1]])
-    ypixlims = np.array([0,np.shape(maskmap)[0]])
-    corners = np.zeros(8).reshape((4,2))
-    cnt = 0
-    for i in range(2):
-        for j in range(2)[::-1]:
-            wcs_corner = wcs.wcs_pix2world(xpixlims[i],ypixlims[j],0.0)
-            corners[cnt] = wcs_corner[:]
-            cnt += 1
-    for i in range(4):
-        if i<3:
-            j = i+1
-        else:
-            j = 0
-#        print [corners[i][0],corners[j][0]]
-#        print [corners[i][1],corners[j][1]]
-        ax2["fk5"].plot([corners[i][0],corners[j][0]], 
-                        [corners[i][1],corners[j][1]], "r-")
+    # Plot the pixel stamp as usual, except with the WCS
+    ax1 = pywcsgrid2.subplot(221, grid_helper=grid_helper,
+                             aspect=1, adjustable="box-forced")
+    ax1.matshow(coadd, origin="lower", cmap='Greys', norm=colors.LogNorm())
+
+    if pix is not None:
+        median = np.median(pix)
+        stdev = np.std(pix)
+        levels = np.linspace(median + stdev, np.max(pix), 5)
+        ax1[hdr].contour(pix,colors="r", levels=levels)
+        #ax1.set_ticklabel_type("delta","delta", 
+        #                       dict(offset=dataheader["1CRVL5"]))    
+
+        # Plot the DSS image rotated into the same frame as the pixel stamp
+        ax2 = pywcsgrid2.subplot(222, grid_helper=grid_helper,
+                                 aspect=1, adjustable="box-forced",
+                                 sharex=ax1, sharey=ax1)
+        ax2[hdr].imshow_affine(pix, origin="lower", cmap='Greys', 
+                               norm=colors.LogNorm())
+        median2 = np.median(coadd)
+        stdev2 = np.std(coadd)
+        levels2 = np.linspace(median, np.max(coadd), 5)
+        #ax2[w2].contour(coadd,3, colors="r")
+        #ax2.set_ticklabel_type("delta","delta", dict(offset=dataheader["1CRVL5"]))
+
 
 
     # Then the pixel motion across the CCD
