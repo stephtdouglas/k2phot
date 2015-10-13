@@ -2,6 +2,6 @@ Calculate lightcurves from K2 data.
 
 Author: Stephanie Douglas
 
-Includes code snippets from Dan Foreman-Mackey and from the PyKE package. 
+Includes code snippets from the PyKE package. 
 
 Any other code is not yet licensed or ready for distribution
