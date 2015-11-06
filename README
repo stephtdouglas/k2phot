@@ -1,7 +1,5 @@
-Calculate lightcurves from K2 data. 
+Extract lightcurves from K2 data. 
 
 Author: Stephanie Douglas
 
-Includes code snippets from the PyKE package. 
-
-Any other code is not yet licensed or ready for distribution
+Use at your own risk. Copyrighted under the MIT license; see LICENSE file for details.
