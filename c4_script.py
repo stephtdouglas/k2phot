@@ -71,23 +71,16 @@ def run_one(filename, output_f=None, extract_companions=False, fw_box=None):
     ap_min, ap_max, ap_step = 2, 7, 0.5
     radii = np.arange(ap_min, ap_max, ap_step)
 
-    ax = plot.stamp(coadd, maskmap)
-    plot.centroids(ax, init, coords, sources)
-    plot.apertures(ax, init, radii)
-    plt.savefig("plot_outputs/{}_stamp.png".format(outfilename))
-
     ap_type = "circ"
     phot.make_circ_lc(pixels, maskmap, times, init, radii,
                  "lcs/{}.csv".format(outfilename), fw_box)
 
     epic = outfilename.split("-")[0][4:]
     logging.info(epic)
-    plot.lcs("lcs/{}.csv".format(outfilename), epic=epic)
 
     plot.plot_four(epic, filename, coadd, maskmap, maskheader, init, coords, 
-                   sources, campaign=4)
+                   sources, ap=None, campaign=4)
 
-    plot.plot_xy("lcs/{}.csv".format(outfilename), epic=epic)
 
     if output_f is not None:
         output_f.write("\n{},{}".format(outfilename,epic))
@@ -168,13 +161,12 @@ if __name__=="__main__":
 
     output_f = None
 
-    filename = "/home/stephanie/Dropbox/c4_tpf/ktwo211041649-c04_lpd-targ.fits"
-#    run_one(filename)
+#    filename = "/home/stephanie/Dropbox/c4_tpf/ktwo211041649-c04_lpd-targ.fits"
+#    run_one(filename, None, False, None)
 
+    filename = "/home/stephanie/Dropbox/c4_tpf_extra/ktwo210963067-c04_lpd-targ.fits"
+    run_one(filename, None, False, 5)
 
-#    run_list("c4_tpfs.lst", save_output=True)
-
-#    run_list("c4_tpfs_extra_box.csv", save_output=True, indiv_boxes=True)
-    run_list("c4_tpfs_box.csv", save_output=True, indiv_boxes=True)
+#    run_list("c4_tpfs_box.csv", save_output=True, indiv_boxes=True)
 
     

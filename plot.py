@@ -238,7 +238,7 @@ def setup_k2_axes(ax,extents=None):
 
 
 def plot_four(epic, filename, coadd, maskmap, maskheader, init, coords, 
-              sources, campaign=4):
+              sources, ap=None, campaign=4):
 
     logging.info("Plot four %s", epic)
 
@@ -277,14 +277,20 @@ def plot_four(epic, filename, coadd, maskmap, maskheader, init, coords,
     ax1 = pywcsgrid2.subplot(221, grid_helper=grid_helper,
                              aspect=1, adjustable="box-forced")
     ax1.matshow(coadd, origin="lower", cmap='Greys', norm=colors.LogNorm())
+    if ap is not None:
+        ap_circle = plt.Circle(coords, ap, color="k", 
+                               fill=False, linewidth=1.5)
+        ax1.add_artist(ap_circle)
+    #ax1.axis["bottom","left","top","right"].toggle(ticklabels=False)
 
     if pix is not None:
         median = np.median(pix)
         stdev = np.std(pix)
         levels = np.linspace(median + stdev, np.max(pix), 5)
         ax1[hdr].contour(pix,colors="r", levels=levels)
-        #ax1.set_ticklabel_type("delta","delta", 
-        #                       dict(offset=dataheader["1CRVL5"]))    
+#        ax1.set_ticklabel_type("delta","delta", 
+#                               dict(offset=np.float64(dataheader["1CRVL5"]),
+#                                    latitude=np.float64(dataheader["2CRVL5"])))
 
         # Plot the DSS image rotated into the same frame as the pixel stamp
         ax2 = pywcsgrid2.subplot(222, grid_helper=grid_helper,
@@ -296,8 +302,8 @@ def plot_four(epic, filename, coadd, maskmap, maskheader, init, coords,
         stdev2 = np.std(coadd)
         levels2 = np.linspace(median, np.max(coadd), 5)
         #ax2[w2].contour(coadd,3, colors="r")
-        #ax2.set_ticklabel_type("delta","delta", dict(offset=dataheader["1CRVL5"]))
-
+#        ax2.set_ticklabel_type("delta","delta")
+#        ax2.axis["bottom","left","top","right"].toggle(ticklabels=False)
 
 
     # Then the pixel motion across the CCD
