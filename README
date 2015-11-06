@@ -3,3 +3,21 @@ Extract lightcurves from K2 data.
 Copyright 2015 Stephanie Douglas.
 
 Use at your own risk. This is free software made available under the MIT License. For details see the LICENSE file.
+
+################################################################################
+
+Some notes on using this code:
+
+- before use, modify base_path in config.py to point at your working directory.
+
+- in your working directory, you should create the following sub-folders: 
+-- lcs/
+-- plot_outputs/
+-- tables/
+-- ss_finders/ (optional; see plot.plot_four if you want to include finder images in this plot)
+
+- you'll also need the target pixel files (TPFs) you want to analyze somewhere on your computer
+
+- c4_script.py is the wrapper around the other codes. It will run a single star or a list of stars through this code.
+
+- If you want to run a set of stars, use c4_tpfs_box.csv or c4_tpfs_extra_box.csv as an example. You can also just use a list of TPFs, with the full path to them under the header "filename".
