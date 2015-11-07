@@ -18,6 +18,8 @@ Some notes on using this code:
 
 - you'll also need the target pixel files (TPFs) you want to analyze somewhere on your computer
 
-- c4_script.py is the wrapper around the other codes. It will run a single star or a list of stars through this code.
+- c4_script.py is the wrapper around the other codes. It will run a single star or a list of stars through this code. I think you can copy it to another directory and it will run fine, but I have not checked this. 
 
 - If you want to run a set of stars, use c4_tpfs_box.csv or c4_tpfs_extra_box.csv as an example. You can also just use a list of TPFs, with the full path to them under the header "filename".
+
+- dependencies: astropy, matplotlib, numpy, scipy, photutils, pywcsgrid, K2fov
