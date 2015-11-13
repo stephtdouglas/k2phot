@@ -338,4 +338,4 @@ def plot_four(epic, filename, coadd, maskmap, maskheader, init, coords,
     plt.tight_layout()
     plt.subplots_adjust(top=0.9)
 
-    plt.savefig("/home/stephanie/code/python/k2phot/plot_outputs/ktwo{}-c0{}_fourby.png".format(epic, campaign))
+    
