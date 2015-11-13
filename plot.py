@@ -237,8 +237,8 @@ def setup_k2_axes(ax,extents=None):
 
 
 
-def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources, 
-              campaign=4):
+def plot_four(epic, filename, coadd, maskmap, maskheader, init, coords, 
+              sources, ap=None, campaign=4):
 
     logging.info("Plot four %s", epic)
 
@@ -272,31 +272,44 @@ def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
         hdr = hdu[0].header
         hdu.close()
 
-    # Plot on a sky coord image
-    ax2 = pywcsgrid2.subplot(222, header=hdr)
-    ax2.matshow(pix, origin='lower', cmap='Greys', norm=colors.LogNorm())
-    ax2.add_compass(loc=1)
+    else:
+        pix = None
 
-    wcs = WCS(maskheader)
+    
+    # Set up the GridHelper to merge the axes
+    grid_helper = pywcsgrid2.GridHelper(wcs=w2)
 
-    xpixlims = np.array([0,np.shape(maskmap)[1]])
-    ypixlims = np.array([0,np.shape(maskmap)[0]])
-    corners = np.zeros(8).reshape((4,2))
-    cnt = 0
-    for i in range(2):
-        for j in range(2)[::-1]:
-            wcs_corner = wcs.wcs_pix2world(xpixlims[i],ypixlims[j],0.0)
-            corners[cnt] = wcs_corner[:]
-            cnt += 1
-    for i in range(4):
-        if i<3:
-            j = i+1
-        else:
-            j = 0
-#        print [corners[i][0],corners[j][0]]
-#        print [corners[i][1],corners[j][1]]
-        ax2["fk5"].plot([corners[i][0],corners[j][0]], 
-                        [corners[i][1],corners[j][1]], "r-")
+    # Plot the pixel stamp as usual, except with the WCS
+    ax1 = pywcsgrid2.subplot(221, grid_helper=grid_helper,
+                             aspect=1, adjustable="box-forced")
+    ax1.matshow(coadd, origin="lower", cmap='Greys', norm=colors.LogNorm())
+    if ap is not None:
+        ap_circle = plt.Circle(coords, ap, color="k", 
+                               fill=False, linewidth=1.5)
+        ax1.add_artist(ap_circle)
+    #ax1.axis["bottom","left","top","right"].toggle(ticklabels=False)
+
+    if pix is not None:
+        median = np.median(pix)
+        stdev = np.std(pix)
+        levels = np.linspace(median + stdev, np.max(pix), 5)
+        ax1[hdr].contour(pix,colors="r", levels=levels)
+#        ax1.set_ticklabel_type("delta","delta", 
+#                               dict(offset=np.float64(dataheader["1CRVL5"]),
+#                                    latitude=np.float64(dataheader["2CRVL5"])))
+
+        # Plot the DSS image rotated into the same frame as the pixel stamp
+        ax2 = pywcsgrid2.subplot(222, grid_helper=grid_helper,
+                                 aspect=1, adjustable="box-forced",
+                                 sharex=ax1, sharey=ax1)
+        ax2[hdr].imshow_affine(pix, origin="lower", cmap='Greys', 
+                               norm=colors.LogNorm())
+        median2 = np.median(coadd)
+        stdev2 = np.std(coadd)
+        levels2 = np.linspace(median, np.max(coadd), 5)
+        #ax2[w2].contour(coadd,3, colors="r")
+#        ax2.set_ticklabel_type("delta","delta")
+#        ax2.axis["bottom","left","top","right"].toggle(ticklabels=False)
 
 
     # Then the pixel motion across the CCD
@@ -332,6 +345,3 @@ def plot_four(epic, coadd, maskmap, maskheader, init, coords, sources,
     plt.tight_layout()
     plt.subplots_adjust(top=0.9)
 
-    plt.savefig("{0}plot_outputs/ktwo{1}-c0{2}_fourby.png".format(base_path, 
-                                                                  epic,  
-                                                                  campaign))
