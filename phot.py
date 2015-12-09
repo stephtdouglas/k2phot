@@ -9,40 +9,6 @@ import photutils
 
 from k2phot import centroid
 
-def calc_bkgd(image, maskmap, ap_center, bkgd_radius, 
-              iterations=3, clip_at = 3):
-    """Calculate background flux level for the image. 
-    """
-    
-    # Calculate the distance of each pixel from the star's centroid
-    image_shape = np.shape(image)
-    center_dist = np.zeros_like(image)
-    for i in range(image_shape[0]):
-        for j in range(image_shape[1]):
-            sq_sub = [(ap_center[0] - i)**2, 
-                      (ap_center[1] - j)**2]
-            center_dist[i,j] = np.sqrt(np.sum(sq_sub))
-            
-    # Mask out the area near the star
-    bkgd_mask = np.zeros_like(image)
-    bkgd_mask[center_dist>bkgd_radius] = 1
-    # Mask out the areas that weren't observed
-    bkgd_mask[maskmap==0] = 0
-    
-    background = image[bkgd_mask==1]
-    bkgd_points = background.flatten()
-    # Iterativelyi compute the median background level,
-    # Removing 3-sigma outliers (or whatever level specified by clip_at) 
-    for i in range(iterations):
-#        logging.debug("%d %f",i,len(bkgd_points))
-        med, stdev = np.median(bkgd_points), np.std(bkgd_points)
-        bad_points = np.where(abs(bkgd_points - med) >= (clip_at * stdev))[0]
-        bkgd_points = np.delete(bkgd_points, bad_points)
-    
-    # The background flux is the median of remaining background points
-    bkgd_flux = np.median(bkgd_points)
-    return bkgd_flux
-
 def circ_flux(image, maskmap, ap_center, ap_radii, max_rad=None):
     """
     Calculate flux in a circular aperture at the given set of aperture radii.

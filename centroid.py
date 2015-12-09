@@ -14,16 +14,18 @@ from k2phot import plot
 def init_pos(header):
     """Find the initial position of the star using the input header."""
 
+    # First get the position in equatorial coordinates
     ra, dec = header["RA_OBJ"], header["DEC_OBJ"]
     logging.info("Nominal position %f %f", ra, dec)
     
+    # Now convert to pixel coordinates
     wcs = WCS(header)
     init = wcs.wcs_world2pix(ra, dec, 0.0)
 
     return init
 
 
-def daofind_centroid(img, init=None, daofind_kwargs=None, max_sep=10):
+def daofind_centroid(img, init=None, daofind_kwargs=None):
     """
     Find centroids using photutils.daofind.
 
@@ -33,6 +35,18 @@ def daofind_centroid(img, init=None, daofind_kwargs=None, max_sep=10):
     If init is a (RA, Dec) pair of PIXEL coords, the closest centroid
     will be returned, along with a flag indicating how many centroids were 
     found. 
+
+    Inputs
+    ------
+    img: array-like
+        a 2-D image
+
+    init: array-like, length 2 (optional)
+        if provided, only return the source closest to the initial position
+
+    daofind_kwargs: dict (optional)
+        keyword arguments for photutils.daofind function
+        default fwhm=2.5, threshold=1000
 
     Outputs
     -------
@@ -45,17 +59,20 @@ def daofind_centroid(img, init=None, daofind_kwargs=None, max_sep=10):
 
     """
 
+    # if no daofind arguments provided, use default fwhm and background
     if daofind_kwargs is None:
         daofind_kwargs = dict()
     daofind_kwargs["fwhm"] = daofind_kwargs.get("fwhm", 2.5)
     daofind_kwargs["threshold"] = daofind_kwargs.get("threshold", 1e3)
 
+    # find sources
     sources = photutils.daofind(img, **daofind_kwargs)
 
     num_sources = len(sources)
     logging.debug("%d sources", num_sources)
     logging.debug(sources)
 
+    # if an initial position is provided, only return the closest source
     if (init is not None) and (num_sources>1):
         ra, dec = init
         sep = np.sqrt((sources["xcentroid"] - ra)**2 + 
@@ -86,6 +103,10 @@ def flux_weighted_centroid(img, box_edge, init=None, to_plot=False):
     init: array-like, n=2, optional
         initial position at which to center the fitting box. 
         if None, the central pixel of the image will be chosen.
+
+    to_plot: boolean 
+        If True, produce a diagnostic plot of flux vs. pixel
+        Default = False
 
     """
 
