@@ -17,17 +17,24 @@ def get_data(filename):
     # Thruster fires and other issues are flagged in the headers
     bad_frames = np.where(table["QUALITY"]>0)[0]
 
+    # Delete bad time points from times array
     times = np.delete(table['TIME'], bad_frames)
-    # C4 and later were background subtracted, but local will be
-    # better than the global background they used
-    if "c04" in filename:
+    # C3 and later were background subtracted, but local calculation 
+    # will be better than the global background they used
+    # (see data release notes for C4)
+    if "FLUX_BKG" in table.dtype.names:
         pixels0 = table['FLUX'] + table["FLUX_BKG"]
     else:
+        logging.info("No pipeline background found")
         pixels0 = table["FLUX"]
-    pixels0[np.isnan(pixels0)] = 0
 
+    # Delete NaNs and bad time points
+    pixels0[np.isnan(pixels0)] = 0
     pixels = np.delete(pixels0, bad_frames, axis=0)
 
+    # The mask indicates where pixels were actually saved vs.
+    # padding to make a rectangular array
+    # The header includes target information
     maskmap = hdu[2].data
     maskheader = hdu[2].header
     kpmag = hdu[0].header["KEPMAG"]
