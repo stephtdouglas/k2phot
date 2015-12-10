@@ -17,6 +17,8 @@ import K2fov.fov as fov
 from K2fov.K2onSilicon import angSepVincenty,getRaDecRollFromFieldnum
 
 import k2spin.plot
+from k2phot.config import *
+
 
 def stamp(img, maskmap, ax=None, cmap="cubehelix"):
     """Plot a single pixel stamp."""
@@ -241,6 +243,7 @@ def plot_four(epic, filename, coadd, maskmap, maskheader, init, coords,
               sources, ap=None, campaign=4):
 
     logging.info("Plot four %s", epic)
+    logging.debug(base_path)
 
     fig = plt.figure(figsize=(8,8))
 
@@ -252,17 +255,17 @@ def plot_four(epic, filename, coadd, maskmap, maskheader, init, coords,
     w2 = WCS(dataheader, colsel=[5], keysel=keysel)
 
     # Plot DSS/SDSS image if available
-    dssname = "{0}d/fc_{0}d_dssdss2red.fits".format(epic)
-    sdssname = "{0}d/fc_{0}d_sdss (dr7)z.fits".format(epic)
-    if os.path.exists("/home/stephanie/code/python/k2phot/ss_finders/"+dssname):
+    dssname = "{0}/ss_finders/{1}d/fc_{1}d_dssdss2red.fits".format(base_path,epic)
+    sdssname = "{0}/ss_finders/{1}d/fc_{1}d_sdss (dr7)z.fits".format(base_path,epic)
+    if os.path.exists(dssname):
         # Open image file
-        hdu = fits.open("/home/stephanie/code/python/k2phot/ss_finders/"+dssname)
+        hdu = fits.open(dssname)
         pix, hdr = hdu[0].data, hdu[0].header
         hdu.close()
 
-    elif os.path.exists("/home/stephanie/code/python/k2phot/ss_finders/"+sdssname):
+    elif os.path.exists(sdssname):
         # Open image file
-        hdu = fits.open("/home/stephanie/code/python/k2phot/ss_finders/"+sdssname)
+        hdu = fits.open(sdssname)
         pix, hdr = hdu[0].data, hdu[0].header
         hdu.close()
 
@@ -313,7 +316,7 @@ def plot_four(epic, filename, coadd, maskmap, maskheader, init, coords,
 
     stamp(coadd, maskmap, ax=ax3, cmap="gray")
 
-    lcs = at.read("/home/stephanie/code/python/k2phot/lcs/ktwo{}-c0{}.csv".format(epic, campaign))
+    lcs = at.read("{}/lcs/ktwo{}-c0{}.csv".format(base_path,epic, campaign))
 
     ax3.set_xlim(np.floor(min(lcs["x"])),np.ceil(max(lcs["x"])))
     ax3.set_ylim(np.floor(min(lcs["y"])),np.ceil(max(lcs["y"])))
@@ -329,7 +332,7 @@ def plot_four(epic, filename, coadd, maskmap, maskheader, init, coords,
 
     # Then sky coordinates with the object position overlaid
     ax4 = plt.subplot(224)
-    plot_chips(ax4, 4)
+    plot_chips(ax4, campaign)
     setup_k2_axes(ax4)
     plt.plot(maskheader["RA_OBJ"], maskheader["DEC_OBJ"], '*', 
              color="Purple", ms=25, alpha=0.8)
