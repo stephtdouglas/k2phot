@@ -123,7 +123,7 @@ def make_circ_lc(image_list, maskmap, times, start_center, ap_radii,
         
         # Find the actual centroid in this image, using start_center as a guess
         # (I should make a flag if the centroid has moved more than a pixel or two)
-        logging.debug(time)
+        #logging.debug(time)
         coords = centroid.flux_weighted_centroid(image_list[i], fw_box,
                                                  init=start_center,
                                                  to_plot=False)
