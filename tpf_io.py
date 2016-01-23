@@ -13,7 +13,7 @@ def get_data(filename):
     # Extension 1 is the data
     # Extension 2 is the aperture mask
 
-    table = hdu[1].data[:]
+    table = hdu[1].data#[:]
     # Thruster fires and other issues are flagged in the headers
     bad_frames = np.where(table["QUALITY"]>0)[0]
 

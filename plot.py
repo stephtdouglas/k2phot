@@ -18,6 +18,8 @@ from K2fov.K2onSilicon import angSepVincenty,getRaDecRollFromFieldnum
 
 from k2phot.config import *
 import k2spin.plot
+from k2phot.config import *
+
 
 def stamp(img, maskmap, ax=None, cmap="cubehelix"):
     """Plot a single pixel stamp."""
@@ -241,28 +243,24 @@ def plot_four(epic, filename, coadd, maskmap, maskheader, init, coords,
               sources, ap=None, campaign=4):
 
     logging.info("Plot four %s", epic)
+    logging.debug(base_path)
 
     fig = plt.figure(figsize=(8,8))
 
-    # First plot coadded image
-#    ax1 = plt.subplot(221)
-#    stamp(coadd, maskmap, ax=ax1, cmap="Greys")
-    ax1 = pywcsgrid2.subplot(221, header=maskheader)
-    ax1.matshow(coadd, origin='lower', cmap='Greys', norm=colors.LogNorm())
-    ax1.add_compass(loc=1)
-    centroids(ax1, init, coords, sources)
-    ax1.set_xlim(-0.5,maskmap.shape[1]-0.5)
-    ax1.set_ylim(-0.5,maskmap.shape[0]-0.5)
+    hdu2 = fits.open(filename)
+    dataheader = hdu2[1].header
+    hdu2.close()
+    keysel = np.empty(13, "S6")
+    keysel[:] = "binary"
+    w2 = WCS(dataheader, colsel=[5], keysel=keysel)
 
-
-    # Then plot DSS/SDSS image if available
-    dssname = base_path+"/ss_finders/{0}d/fc_{0}d_dssdss2red.fits".format(epic)
-    sdssname = base_path+"/ss_finders/{0}d/fc_{0}d_sdss (dr7)z.fits".format(epic)
+    # Plot DSS/SDSS image if available
+    dssname = "{0}/ss_finders/{1}d/fc_{1}d_dssdss2red.fits".format(base_path,epic)
+    sdssname = "{0}/ss_finders/{1}d/fc_{1}d_sdss (dr7)z.fits".format(base_path,epic)
     if os.path.exists(dssname):
         # Open image file
         hdu = fits.open(dssname)
-        pix = hdu[0].data
-        hdr = hdu[0].header
+        pix, hdr = hdu[0].data, hdu[0].header
         hdu.close()
 
     elif os.path.exists(sdssname):
@@ -332,16 +330,18 @@ def plot_four(epic, filename, coadd, maskmap, maskheader, init, coords,
     cbar_ticks = np.asarray(np.percentile(lcs["t"],np.arange(10,100,20)),int)
     cbar1 = fig.colorbar(xyt, cax=cax3, ticks=cbar_ticks, 
                          orientation="horizontal")
-    cbar1.set_label("Time (d)")
+    cbar1.set_label("Time (d)",fontsize="small")
 
     # Then sky coordinates with the object position overlaid
     ax4 = plt.subplot(224)
-    plot_chips(ax4, 4)
+    plot_chips(ax4, campaign)
     setup_k2_axes(ax4)
     plt.plot(maskheader["RA_OBJ"], maskheader["DEC_OBJ"], '*', 
              color="Purple", ms=25, alpha=0.8)
+    plt.setp(ax4.get_xticklabels()[::2], visible=False)    
+    plt.setp(ax4.get_yticklabels()[::2], visible=False)    
 
-    plt.suptitle("EPIC {}".format(epic), fontsize="xx-large")
-    plt.tight_layout()
-    plt.subplots_adjust(top=0.9)
+    plt.suptitle("EPIC {}".format(epic))#, fontsize="large")
+    #plt.tight_layout()
+    plt.subplots_adjust(top=0.95, hspace=0.5, wspace=0.8)
 
