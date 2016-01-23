@@ -91,7 +91,7 @@ def plot_list(listname, resname):
     res = at.read(resname)
 
     res_filenames = res["filename"].data
-    f = open("/home/stephanie/my_papers/hyadesk2/figure_sets/f6.tbl","w")
+    f = open("/home/stephanie/my_papers/hyadesk2/figure_sets/f5.tbl","w")
 
     count = 1
     for i, fname in enumerate(tpfs["filename"]):
@@ -109,12 +109,15 @@ def plot_list(listname, resname):
             # LC extraction for 210963067 is shown in Figure 7 (fig:neighbor)
             # but I guess I'll show the diagnostic plot here for completness
             # So skip the daofind results
+            # 210675409 is actually too bright but still in my list somehow
+            # note I never ran 211037886
             if ((epic=="2107361051") or (epic=="2107361050") or 
-                (epic=="2109630671") or (epic=="2109630670")):
+                (epic=="2109630671") or (epic=="2109630670") or 
+            (epic==210675409)):
                 continue
             else:
                 save_epic = epic
-            figsetname = "f6_{0}.eps".format(count)
+            figsetname = "f5_{0}.eps".format(count)
             f.write("{0} & EPIC {1}\n".format(figsetname,save_epic))
             figsetname = "/home/stephanie/my_papers/hyadesk2/figure_sets/"+figsetname
             plt.savefig(figsetname,bbox_inches="tight")

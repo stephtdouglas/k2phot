@@ -326,9 +326,9 @@ def plot_four(epic, filename, coadd, maskmap, maskheader, init, coords,
                       vmin=np.percentile(lcs["t"], 5), 
                       vmax=np.percentile(lcs["t"], 95),
                       cmap="gnuplot")
-    cbar_ticks = np.asarray(np.percentile(lcs["t"],np.arange(10,100,20)),int)
+    cbar_ticks = np.asarray(np.percentile(lcs["t"],np.arange(10,100,40)),int)
     cbar1 = fig.colorbar(xyt, cax=cax3, ticks=cbar_ticks, orientation="horizontal")
-    cbar1.set_label("Time (d)")
+    cbar1.set_label("Time (d)",fontsize="small")
 
     # Then sky coordinates with the object position overlaid
     ax4 = plt.subplot(224)
@@ -336,9 +336,11 @@ def plot_four(epic, filename, coadd, maskmap, maskheader, init, coords,
     setup_k2_axes(ax4)
     plt.plot(maskheader["RA_OBJ"], maskheader["DEC_OBJ"], '*', 
              color="Purple", ms=25, alpha=0.8)
+    plt.setp(ax4.get_xticklabels()[::2], visible=False)    
+    plt.setp(ax4.get_yticklabels()[::2], visible=False)    
 
-    plt.suptitle("EPIC {}".format(epic), fontsize="xx-large")
-    plt.tight_layout()
-    plt.subplots_adjust(top=0.9)
+    plt.suptitle("EPIC {}".format(epic))#, fontsize="large")
+    #plt.tight_layout()
+    plt.subplots_adjust(top=0.95, hspace=0.5, wspace=0.8)
 
     
