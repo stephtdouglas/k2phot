@@ -100,10 +100,11 @@ def plot_list(listname, resname):
         res_fname = res_filenames[resi]
         if len(resi)>0:
             res_fname = res_filenames[resi][0]
+        fname = fname.replace("Dropbox","data")
         if ((os.path.exists(fname)==True) and 
             (os.path.exists(res_fname)==True)):
             logging.warning(fname)
-            plot_one(fname, res["ap"][resi], tpfs["fw_box"][i])
+#            plot_one(fname, res["ap"][resi], tpfs["fw_box"][i])
 
             # Just use lc from 5x5 centroiding box for 210736105
             # LC extraction for 210963067 is shown in Figure 7 (fig:neighbor)
@@ -113,15 +114,15 @@ def plot_list(listname, resname):
             # note I never ran 211037886
             if ((epic=="2107361051") or (epic=="2107361050") or 
                 (epic=="2109630671") or (epic=="2109630670") or 
-            (epic==210675409)):
+                (epic=="210675409")):
                 continue
             else:
                 save_epic = epic
             figsetname = "f5_{0}.eps".format(count)
             f.write("{0} & EPIC {1}\n".format(figsetname,save_epic))
-            figsetname = "/home/stephanie/my_papers/hyadesk2/figure_sets/"+figsetname
-            plt.savefig(figsetname,bbox_inches="tight")
-            plt.close("all")
+#            figsetname = "/home/stephanie/my_papers/hyadesk2/figure_sets/"+figsetname
+#            plt.savefig(figsetname,bbox_inches="tight")
+#            plt.close("all")
             count += 1
 
         else:
@@ -138,6 +139,6 @@ if __name__=="__main__":
 #    filename = "/home/stephanie/Dropbox/c4_tpf/ktwo211041649-c04_lpd-targ.fits"
 #    run_one(filename, None, False, None)
 
-    plot_list("c4_tpfs_box.csv", "/home/stephanie/code/python/k2spin/tables/c4_lcs_aps_results_2015-12-18_comments.csv")
+    plot_list("c4_tpfs_box.csv", "/home/stephanie/code/python/k2spin/tables/c4_lcs_aps_results_2016-01-18_comments.csv")
 
     
